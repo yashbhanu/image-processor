@@ -11,7 +11,8 @@ import ProcessingRequest from "./schemas/ProcessingRequestSchema.js";
 import Product from "./schemas/ProductSchema.js";
 import { validateCSV, processImage } from "./utils/helper.js";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
+import { processImagesWithWorkers } from "./workers/worker_functions.js";
 
 dotenv.config();
 
@@ -19,7 +20,10 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(json());
-app.use('/processed_images', express.static(path.join(__dirname, 'processed_images')));
+app.use(
+  "/processed_images",
+  express.static(path.join(__dirname, "processed_images"))
+);
 
 // MongoDB connection
 connect(process.env.MONGODB_URI || "mongodb://localhost:27017/image-processor");
@@ -126,42 +130,32 @@ app.get("/api/status/:requestId", async (req, res) => {
 // Background processing function
 async function processImages(requestId) {
   try {
-    const request = await ProcessingRequest.findOneAndUpdate(
-      { requestId },
-      { status: "processing" }
-    );
+    const request = await ProcessingRequest.findOne({ requestId });
+    request.status = "processing";
+    await request.save();
 
     const products = await Product.find({ requestId });
 
     for (const product of products) {
       product.status = "processing";
-      await product.save();
-
-      const outputUrls = [];
-      for (const imageUrl of product.inputImageUrls) {
-        const processedUrl = await processImage(imageUrl);
-        outputUrls.push(processedUrl);
-
-        request.processedImages += 1;
-        await request.save();
-      }
-
+      const outputUrls = await processImagesWithWorkers(product.inputImageUrls);
+      
       product.outputImageUrls = outputUrls;
-      product.status = "completed";
+      product.status = outputUrls.length > 0 ? "completed" : "failed";
       await product.save();
+
+      // Update request progress
+      request.processedImages += outputUrls.length;
+      await request.save();
     }
 
     request.status = "completed";
     await request.save();
 
-    // Trigger webhook if provided
+    // Webhook trigger block
     if (request.webhookUrl) {
       try {
-        await axios.post(request.webhookUrl, {
-          requestId,
-          status: "completed",
-          timestamp: new Date(),
-        });
+        await axios.get(request.webhookUrl);
       } catch (error) {
         console.error("Webhook trigger error:", error);
       }
