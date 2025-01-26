@@ -89,6 +89,9 @@ Worker threads provide parallel image processing capabilities, improving system 
 4. Save processed image
 5. Return processed image URL
 
+### System Architechture Diagram
+https://drive.google.com/file/d/1zn1JX-dlPfgNgiQSyb7HLlsEiEXvJ3gn/view?usp=sharing
+
 ### Demo CSV Link
 https://docs.google.com/spreadsheets/d/1YNaF2YRoAVL6wMO2adWARFKEO4I-xlbqxVGWOrVyxAo/edit?usp=sharing
 

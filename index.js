@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
 import ProcessingRequest from "./schemas/ProcessingRequestSchema.js";
 import Product from "./schemas/ProductSchema.js";
-import { validateCSV, processImage } from "./utils/helper.js";
+import { validateCSV } from "./utils/helper.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { processImagesWithWorkers } from "./workers/worker_functions.js";
