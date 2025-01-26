@@ -102,5 +102,5 @@ https://www.postman.com/joint-operations-astronaut-29714134/workspace/postman-im
 Processed images accessible via:
 http://localhost:3000/processed_images/[image-uuid].jpg
 
-### Limitations & Future Improvments
+### Limitations & Future Improvements
 Currently the processed images can be accessed only using the local server. In Future Improvements, the images can be uploaded to a cloud service like AWS S3(Simple Storage Service) & can be accessed directly anytime from anywhere.
